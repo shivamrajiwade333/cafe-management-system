@@ -58,6 +58,9 @@ export const LiveOrdersTab: React.FC<LiveOrdersTabProps> = ({ onUpdatePendingCou
           list.forEach((o) => knownOrderIdsRef.current.add(o.id));
           initialMountDoneRef.current = true;
 
+          // Sync server truth into client-side cache
+          dataStore.saveOrders(list, 'cafe001');
+
           setOrders(list);
           const pending = list.filter((o) => o.status === 'pending').length;
           onUpdatePendingCount(pending);
@@ -80,16 +83,13 @@ export const LiveOrdersTab: React.FC<LiveOrdersTabProps> = ({ onUpdatePendingCou
   useEffect(() => {
     loadOrders();
 
-    // Subscribe to realtime broadcast from customer orders & status updates
+    // Subscribe to realtime broadcast from customer orders
     const unsubscribe = dataStore.subscribe((event) => {
       if (event.type === 'NEW_ORDER') {
         const order = event.payload as IOrder;
         soundManager.playNewOrderChime();
         setNewOrderAlert(order);
         setTimeout(() => setNewOrderAlert(null), 8000);
-        loadOrders();
-      } else if (event.type === 'ORDER_STATUS_CHANGED') {
-        soundManager.playStatusChangeBeep();
         loadOrders();
       }
     });
@@ -103,24 +103,41 @@ export const LiveOrdersTab: React.FC<LiveOrdersTabProps> = ({ onUpdatePendingCou
   }, [loadOrders]);
 
   const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
-    // Optimistic UI update
+    // 1. Optimistic UI update immediately
+    const updatedTimestamp = new Date().toISOString();
     setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus, updated_at: new Date().toISOString() } : o))
+      prev.map((o) => (o.id.toLowerCase() === orderId.toLowerCase() ? { ...o, status: newStatus, updated_at: updatedTimestamp } : o))
     );
 
+    // 2. Persist to server API
     try {
-      await fetch(`/api/orders/${orderId}`, {
+      const res = await fetch(`/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus, cafe_id: 'cafe001' }),
       });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.order) {
+          // Lock in confirmed server response
+          setOrders((prev) =>
+            prev.map((o) => (o.id.toLowerCase() === orderId.toLowerCase() ? json.order : o))
+          );
+          // Update client-side local cache as well
+          const currentList = dataStore.getOrders('cafe001');
+          const idx = currentList.findIndex((o) => o.id.toLowerCase() === orderId.toLowerCase());
+          if (idx >= 0) {
+            currentList[idx] = json.order;
+            dataStore.saveOrders(currentList, 'cafe001');
+          }
+        }
+      }
     } catch (err) {
       console.warn('Failed to patch order status to server:', err);
     }
 
-    // Also update local dataStore and trigger local audio
-    await dataStore.updateOrderStatus(orderId, newStatus, 'cafe001');
-    loadOrders();
+    // 3. Update local audio & table status
+    soundManager.playStatusChangeBeep();
   };
 
   // Filtered orders

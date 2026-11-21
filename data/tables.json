@@ -25,8 +25,7 @@
     "cafe_id": "cafe001",
     "table_number": "T04",
     "capacity": 6,
-    "status": "occupied",
-    "active_order_id": "ORD-PHONE-999"
+    "status": "available"
   },
   {
     "id": "tbl-5",

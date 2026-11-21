@@ -18,34 +18,24 @@ if (!fs.existsSync(DATA_DIR)) {
   }
 }
 
-// In-memory cache backed by globalThis so Next.js serverless / hot-reloads keep state
-declare global {
-  var __globalCafeOrders: IOrder[] | undefined;
-  var __globalCafeTables: ICafeTable[] | undefined;
-  var __globalCafeMenu: IMenuItem[] | undefined;
-}
-
 function loadOrdersFromFile(): IOrder[] {
-  if (globalThis.__globalCafeOrders) {
-    return globalThis.__globalCafeOrders;
-  }
   if (fs.existsSync(ORDERS_FILE)) {
     try {
       const content = fs.readFileSync(ORDERS_FILE, 'utf-8');
       const parsed = JSON.parse(content);
-      globalThis.__globalCafeOrders = parsed;
-      return parsed;
-    } catch {
-      // fallback
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch (err) {
+      console.warn('Failed to parse orders.json:', err);
     }
   }
-  globalThis.__globalCafeOrders = [...defaultInitialOrders];
-  saveOrdersToFile(globalThis.__globalCafeOrders);
-  return globalThis.__globalCafeOrders;
+  const initial = [...defaultInitialOrders];
+  saveOrdersToFile(initial);
+  return initial;
 }
 
 function saveOrdersToFile(orders: IOrder[]) {
-  globalThis.__globalCafeOrders = orders;
   try {
     fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf-8');
   } catch (err) {
@@ -54,26 +44,23 @@ function saveOrdersToFile(orders: IOrder[]) {
 }
 
 function loadTablesFromFile(): ICafeTable[] {
-  if (globalThis.__globalCafeTables) {
-    return globalThis.__globalCafeTables;
-  }
   if (fs.existsSync(TABLES_FILE)) {
     try {
       const content = fs.readFileSync(TABLES_FILE, 'utf-8');
       const parsed = JSON.parse(content);
-      globalThis.__globalCafeTables = parsed;
-      return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
     } catch {
       // fallback
     }
   }
-  globalThis.__globalCafeTables = [...defaultTables];
-  saveTablesToFile(globalThis.__globalCafeTables);
-  return globalThis.__globalCafeTables;
+  const initial = [...defaultTables];
+  saveTablesToFile(initial);
+  return initial;
 }
 
 function saveTablesToFile(tables: ICafeTable[]) {
-  globalThis.__globalCafeTables = tables;
   try {
     fs.writeFileSync(TABLES_FILE, JSON.stringify(tables, null, 2), 'utf-8');
   } catch (err) {
@@ -82,26 +69,23 @@ function saveTablesToFile(tables: ICafeTable[]) {
 }
 
 function loadMenuFromFile(): IMenuItem[] {
-  if (globalThis.__globalCafeMenu) {
-    return globalThis.__globalCafeMenu;
-  }
   if (fs.existsSync(MENU_FILE)) {
     try {
       const content = fs.readFileSync(MENU_FILE, 'utf-8');
       const parsed = JSON.parse(content);
-      globalThis.__globalCafeMenu = parsed;
-      return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
     } catch {
       // fallback
     }
   }
-  globalThis.__globalCafeMenu = [...defaultMenuItems];
-  saveMenuToFile(globalThis.__globalCafeMenu);
-  return globalThis.__globalCafeMenu;
+  const initial = [...defaultMenuItems];
+  saveMenuToFile(initial);
+  return initial;
 }
 
 function saveMenuToFile(menu: IMenuItem[]) {
-  globalThis.__globalCafeMenu = menu;
   try {
     fs.writeFileSync(MENU_FILE, JSON.stringify(menu, null, 2), 'utf-8');
   } catch (err) {
@@ -118,7 +102,7 @@ export const serverStore = {
 
   getOrderById(orderId: string, cafeId: string = 'cafe001'): IOrder | undefined {
     const all = loadOrdersFromFile();
-    return all.find((o) => o.id === orderId && o.cafe_id === cafeId);
+    return all.find((o) => o.id.toLowerCase() === orderId.toLowerCase() && o.cafe_id === cafeId);
   },
 
   async placeOrder(order: IOrder): Promise<IOrder> {
@@ -175,7 +159,7 @@ export const serverStore = {
 
   async updateOrderStatus(orderId: string, status: OrderStatus, cafeId: string = 'cafe001'): Promise<IOrder | null> {
     const all = loadOrdersFromFile();
-    const order = all.find((o) => o.id === orderId && o.cafe_id === cafeId);
+    const order = all.find((o) => o.id.toLowerCase() === orderId.toLowerCase() && o.cafe_id === cafeId);
     if (!order) return null;
 
     order.status = status;
