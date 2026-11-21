@@ -16,3 +16,11 @@ yarn-error.log*
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Tunnel & Executables
+cloudflared.exe
+tunnel.log
+tunnel.txt
+pinggy.txt
+
+.vercel
