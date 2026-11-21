@@ -175,8 +175,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         updated_at: new Date().toISOString(),
       };
 
-      // Save and broadcast through dataStore
-      const saved = await dataStore.placeOrder(newOrder);
+      // Send order to shared server API so Manager Dashboard on another device receives it instantly
+      let saved: IOrder = newOrder;
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order: newOrder }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.order) {
+            saved = data.order;
+          }
+        }
+      } catch (networkErr) {
+        console.warn('Network API order submission failed, falling back to local store:', networkErr);
+      }
+
+      // Also update local store & broadcast for local tab listeners
+      await dataStore.placeOrder(saved);
       setLastPlacedOrder(saved);
       if (typeof window !== 'undefined') {
         localStorage.setItem('cafe_last_order', JSON.stringify(saved));

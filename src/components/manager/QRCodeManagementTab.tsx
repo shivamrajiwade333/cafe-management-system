@@ -25,7 +25,19 @@ export const QRCodeManagementTab: React.FC = () => {
   const [qrCodeDataUrls, setQrCodeDataUrls] = useState<Record<string, string>>({});
   const [selectedTableForPrint, setSelectedTableForPrint] = useState<ICafeTable | null>(null);
 
-  const loadTables = () => {
+  const loadTables = async () => {
+    try {
+      const res = await fetch('/api/tables?cafe=cafe001', { cache: 'no-store' });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.tables && Array.isArray(json.tables)) {
+          setTables(json.tables);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Tables fetch error:', err);
+    }
     const list = dataStore.getTables('cafe001');
     setTables([...list]);
   };
@@ -65,9 +77,23 @@ export const QRCodeManagementTab: React.FC = () => {
     }
   }, [tables, baseUrl]);
 
-  const handleAddTable = (e: React.FormEvent) => {
+  const handleAddTable = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTableNum) return;
+
+    try {
+      await fetch('/api/tables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          table_number: newTableNum,
+          capacity: Number(newCapacity),
+          cafe_id: 'cafe001',
+        }),
+      });
+    } catch (err) {
+      console.warn('Table add API error:', err);
+    }
 
     dataStore.addTable(newTableNum, Number(newCapacity), 'cafe001');
     setNewTableNum('');

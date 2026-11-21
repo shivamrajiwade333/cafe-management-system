@@ -44,8 +44,21 @@ function MenuContent() {
     if (cafeParam) setCafeId(cafeParam);
     if (tableParam) setTableNumber(tableParam.toUpperCase());
 
-    const menu = dataStore.getMenuItems('cafe001');
-    setItems(menu);
+    const targetCafe = cafeParam || 'cafe001';
+    
+    // Load menu from shared API so changes made by manager reflect for customers
+    fetch(`/api/menu?cafe=${targetCafe}`, { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.items && Array.isArray(data.items)) {
+          setItems(data.items);
+        } else {
+          setItems(dataStore.getMenuItems(targetCafe));
+        }
+      })
+      .catch(() => {
+        setItems(dataStore.getMenuItems(targetCafe));
+      });
   }, [searchParams]);
 
   // Filter items based on Category, Search & Dietary

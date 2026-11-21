@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dataStore } from '@/lib/store';
+import { serverStore } from '@/lib/serverStore';
 import { OrderStatus } from '@/types';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: NextRequest,
@@ -11,12 +13,17 @@ export async function GET(
     const { searchParams } = new URL(req.url);
     const cafeId = searchParams.get('cafe') || 'cafe001';
 
-    const order = dataStore.getOrderById(id, cafeId);
+    const order = serverStore.getOrderById(id, cafeId);
     if (!order) {
-      return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Order not found' }, { 
+        status: 404,
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+      });
     }
 
-    return NextResponse.json({ success: true, order });
+    return NextResponse.json({ success: true, order }, {
+      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+    });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
@@ -36,7 +43,7 @@ export async function PATCH(
       return NextResponse.json({ success: false, error: 'Invalid status' }, { status: 400 });
     }
 
-    const updated = await dataStore.updateOrderStatus(id, status as OrderStatus, cafe_id || 'cafe001');
+    const updated = await serverStore.updateOrderStatus(id, status as OrderStatus, cafe_id || 'cafe001');
     if (!updated) {
       return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
     }

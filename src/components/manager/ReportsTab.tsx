@@ -29,8 +29,23 @@ export const ReportsTab: React.FC = () => {
   const [report, setReport] = useState<ISalesReport | null>(null);
 
   useEffect(() => {
-    const data = dataStore.getSalesReport('cafe001');
-    setReport(data);
+    async function fetchReport() {
+      try {
+        const res = await fetch('/api/reports?cafe=cafe001', { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.report) {
+            setReport(json.report);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Reports fetch error, falling back:', err);
+      }
+      const data = dataStore.getSalesReport('cafe001');
+      setReport(data);
+    }
+    fetchReport();
   }, []);
 
   if (!report) {

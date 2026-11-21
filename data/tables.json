@@ -1,0 +1,73 @@
+[
+  {
+    "id": "tbl-1",
+    "cafe_id": "cafe001",
+    "table_number": "T01",
+    "capacity": 4,
+    "status": "available"
+  },
+  {
+    "id": "tbl-2",
+    "cafe_id": "cafe001",
+    "table_number": "T02",
+    "capacity": 4,
+    "status": "available"
+  },
+  {
+    "id": "tbl-3",
+    "cafe_id": "cafe001",
+    "table_number": "T03",
+    "capacity": 2,
+    "status": "available"
+  },
+  {
+    "id": "tbl-4",
+    "cafe_id": "cafe001",
+    "table_number": "T04",
+    "capacity": 6,
+    "status": "occupied",
+    "active_order_id": "ORD-PHONE-999"
+  },
+  {
+    "id": "tbl-5",
+    "cafe_id": "cafe001",
+    "table_number": "T05",
+    "capacity": 4,
+    "status": "available"
+  },
+  {
+    "id": "tbl-6",
+    "cafe_id": "cafe001",
+    "table_number": "T06",
+    "capacity": 4,
+    "status": "available"
+  },
+  {
+    "id": "tbl-7",
+    "cafe_id": "cafe001",
+    "table_number": "T07",
+    "capacity": 8,
+    "status": "available"
+  },
+  {
+    "id": "tbl-8",
+    "cafe_id": "cafe001",
+    "table_number": "T08",
+    "capacity": 2,
+    "status": "available"
+  },
+  {
+    "id": "tbl-9",
+    "cafe_id": "cafe001",
+    "table_number": "T09",
+    "capacity": 4,
+    "status": "available"
+  },
+  {
+    "id": "tbl-10",
+    "cafe_id": "cafe001",
+    "table_number": "T10",
+    "capacity": 4,
+    "status": "available"
+  }
+]

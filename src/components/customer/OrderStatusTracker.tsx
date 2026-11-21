@@ -35,19 +35,43 @@ const statusSteps: { key: OrderStatus; label: string; desc: string; icon: React.
 export const OrderStatusTracker: React.FC<OrderStatusTrackerProps> = ({ orderId }) => {
   const [order, setOrder] = useState<IOrder | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const prevStatusRef = React.useRef<string | null>(null);
 
-  const fetchOrder = () => {
+  const fetchOrder = React.useCallback(async () => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}?cafe=cafe001`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.order) {
+          const freshOrder: IOrder = data.order;
+          if (prevStatusRef.current && prevStatusRef.current !== freshOrder.status) {
+            soundManager.playStatusChangeBeep();
+          }
+          prevStatusRef.current = freshOrder.status;
+          setOrder(freshOrder);
+          setLastUpdated(new Date());
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Order tracker fetch error, falling back to local store:', err);
+    }
+
     const found = dataStore.getOrderById(orderId);
     if (found) {
+      if (prevStatusRef.current && prevStatusRef.current !== found.status) {
+        soundManager.playStatusChangeBeep();
+      }
+      prevStatusRef.current = found.status;
       setOrder({ ...found });
       setLastUpdated(new Date());
     }
-  };
+  }, [orderId]);
 
   useEffect(() => {
     fetchOrder();
 
-    // Subscribe to real-time events from dataStore broadcast
+    // Subscribe to real-time events from dataStore broadcast (same-device tab communication)
     const unsubscribe = dataStore.subscribe((event) => {
       if (
         (event.type === 'ORDER_STATUS_CHANGED' || event.type === 'NEW_ORDER') &&
@@ -59,13 +83,13 @@ export const OrderStatusTracker: React.FC<OrderStatusTrackerProps> = ({ orderId 
       }
     });
 
-    // Also poll gently every 5s as safety fallback
-    const interval = setInterval(fetchOrder, 5000);
+    // Cross-device polling: every 2 seconds
+    const interval = setInterval(fetchOrder, 2000);
     return () => {
       unsubscribe();
       clearInterval(interval);
     };
-  }, [orderId]);
+  }, [orderId, fetchOrder]);
 
   if (!order) {
     return (

@@ -39,7 +39,19 @@ export const MenuManagementTab: React.FC = () => {
   const [formPrepTime, setFormPrepTime] = useState<number>(10);
   const [formIsAvailable, setFormIsAvailable] = useState(true);
 
-  const loadMenu = () => {
+  const loadMenu = async () => {
+    try {
+      const res = await fetch('/api/menu?cafe=cafe001', { cache: 'no-store' });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.items && Array.isArray(json.items)) {
+          setItems(json.items);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Menu fetch error:', err);
+    }
     const list = dataStore.getMenuItems('cafe001');
     setItems([...list]);
   };
@@ -74,7 +86,7 @@ export const MenuManagementTab: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSaveItem = (e: React.FormEvent) => {
+  const handleSaveItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName || !formPrice) return;
 
@@ -93,38 +105,70 @@ export const MenuManagementTab: React.FC = () => {
         prep_time_minutes: Number(formPrepTime),
         is_available: formIsAvailable,
       };
+      try {
+        await fetch('/api/menu', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item: updated, cafe_id: 'cafe001' }),
+        });
+      } catch (err) {
+        console.warn('Menu update API error:', err);
+      }
       dataStore.updateMenuItem(updated, 'cafe001');
     } else {
-      dataStore.addMenuItem(
-        {
-          cafe_id: 'cafe001',
-          name: formName,
-          description: formDescription,
-          price: Number(formPrice),
-          category_id: formCategory,
-          category_name: catObj?.name || 'Starters',
-          image_url: formImageUrl || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=800&auto=format&fit=crop',
-          is_veg: formIsVeg,
-          is_available: formIsAvailable,
-          is_featured: false,
-          prep_time_minutes: Number(formPrepTime),
-          tags: ['New Item'],
-        },
-        'cafe001'
-      );
+      const newItemPayload = {
+        cafe_id: 'cafe001',
+        name: formName,
+        description: formDescription,
+        price: Number(formPrice),
+        category_id: formCategory,
+        category_name: catObj?.name || 'Starters',
+        image_url: formImageUrl || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=800&auto=format&fit=crop',
+        is_veg: formIsVeg,
+        is_available: formIsAvailable,
+        is_featured: false,
+        prep_time_minutes: Number(formPrepTime),
+        tags: ['New Item'],
+      };
+      try {
+        await fetch('/api/menu', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item: newItemPayload, cafe_id: 'cafe001' }),
+        });
+      } catch (err) {
+        console.warn('Menu create API error:', err);
+      }
+      dataStore.addMenuItem(newItemPayload, 'cafe001');
     }
 
     loadMenu();
     setIsModalOpen(false);
   };
 
-  const handleToggleAvailability = (itemId: string) => {
+  const handleToggleAvailability = async (itemId: string) => {
+    try {
+      await fetch('/api/menu', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId, action: 'toggle-availability', cafe_id: 'cafe001' }),
+      });
+    } catch (err) {
+      console.warn('Toggle availability API error:', err);
+    }
     dataStore.toggleItemAvailability(itemId, 'cafe001');
     loadMenu();
   };
 
-  const handleDeleteItem = (itemId: string, name: string) => {
+  const handleDeleteItem = async (itemId: string, name: string) => {
     if (confirm(`Are you sure you want to delete "${name}" from the menu?`)) {
+      try {
+        await fetch(`/api/menu?id=${itemId}&cafe=cafe001`, {
+          method: 'DELETE',
+        });
+      } catch (err) {
+        console.warn('Delete item API error:', err);
+      }
       dataStore.deleteMenuItem(itemId, 'cafe001');
       loadMenu();
     }

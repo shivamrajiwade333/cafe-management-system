@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Clock, 
   CheckCircle2, 
@@ -31,13 +31,51 @@ export const LiveOrdersTab: React.FC<LiveOrdersTabProps> = ({ onUpdatePendingCou
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [newOrderAlert, setNewOrderAlert] = useState<IOrder | null>(null);
   const [selectedPrintOrder, setSelectedPrintOrder] = useState<IOrder | null>(null);
+  const knownOrderIdsRef = useRef<Set<string>>(new Set());
+  const initialMountDoneRef = useRef(false);
 
-  const loadOrders = () => {
+  const loadOrders = useCallback(async () => {
+    try {
+      const res = await fetch('/api/orders?cafe=cafe001', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.orders && Array.isArray(data.orders)) {
+          const list: IOrder[] = data.orders;
+
+          // Check if any brand new pending orders arrived from phone
+          if (initialMountDoneRef.current) {
+            const newlyArrived = list.find(
+              (o) => !knownOrderIdsRef.current.has(o.id) && o.status === 'pending'
+            );
+            if (newlyArrived) {
+              soundManager.playNewOrderChime();
+              setNewOrderAlert(newlyArrived);
+              setTimeout(() => setNewOrderAlert(null), 8000);
+            }
+          }
+
+          // Update known IDs
+          list.forEach((o) => knownOrderIdsRef.current.add(o.id));
+          initialMountDoneRef.current = true;
+
+          setOrders(list);
+          const pending = list.filter((o) => o.status === 'pending').length;
+          onUpdatePendingCount(pending);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Live orders fetch error, falling back to local store:', err);
+    }
+
+    // Fallback to local store if server request fails
     const list = dataStore.getOrders('cafe001');
+    list.forEach((o) => knownOrderIdsRef.current.add(o.id));
+    initialMountDoneRef.current = true;
     setOrders([...list]);
     const pending = list.filter((o) => o.status === 'pending').length;
     onUpdatePendingCount(pending);
-  };
+  }, [onUpdatePendingCount]);
 
   useEffect(() => {
     loadOrders();
@@ -48,7 +86,6 @@ export const LiveOrdersTab: React.FC<LiveOrdersTabProps> = ({ onUpdatePendingCou
         const order = event.payload as IOrder;
         soundManager.playNewOrderChime();
         setNewOrderAlert(order);
-        // Auto-dismiss alert banner after 8s
         setTimeout(() => setNewOrderAlert(null), 8000);
         loadOrders();
       } else if (event.type === 'ORDER_STATUS_CHANGED') {
@@ -57,14 +94,31 @@ export const LiveOrdersTab: React.FC<LiveOrdersTabProps> = ({ onUpdatePendingCou
       }
     });
 
-    const interval = setInterval(loadOrders, 4000);
+    // Cross-device fast polling: every 1.5 seconds so incoming phone orders reflect instantly
+    const interval = setInterval(loadOrders, 1500);
     return () => {
       unsubscribe();
       clearInterval(interval);
     };
-  }, []);
+  }, [loadOrders]);
 
   const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
+    // Optimistic UI update
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus, updated_at: new Date().toISOString() } : o))
+    );
+
+    try {
+      await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus, cafe_id: 'cafe001' }),
+      });
+    } catch (err) {
+      console.warn('Failed to patch order status to server:', err);
+    }
+
+    // Also update local dataStore and trigger local audio
     await dataStore.updateOrderStatus(orderId, newStatus, 'cafe001');
     loadOrders();
   };

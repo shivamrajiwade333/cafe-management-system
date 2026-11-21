@@ -1,0 +1,176 @@
+[
+  {
+    "id": "ORD-PHONE-999",
+    "cafe_id": "cafe001",
+    "table_number": "T04",
+    "status": "accepted",
+    "customer_name": "Simulated Phone Customer",
+    "special_instructions": "Extra garlic dip please!",
+    "items": [
+      {
+        "id": "oi-1",
+        "order_id": "ORD-PHONE-999",
+        "menu_item_id": "item-1",
+        "item_name": "Palace Royal Chicken Shawarma Platter",
+        "item_price": 369,
+        "is_veg": false,
+        "quantity": 1,
+        "subtotal": 369
+      }
+    ],
+    "subtotal": 369,
+    "tax_amount": 18.45,
+    "total_amount": 387.45,
+    "created_at": "2026-11-21T19:55:52.659Z",
+    "updated_at": "2026-11-21T19:55:52.848Z"
+  },
+  {
+    "id": "ORD-1042",
+    "cafe_id": "cafe001",
+    "table_number": "T02",
+    "status": "preparing",
+    "customer_name": "Rohan Sharma",
+    "special_instructions": "Less spicy in shawarma please, extra garlic mayo",
+    "subtotal": 528,
+    "tax_amount": 26.4,
+    "total_amount": 554.4,
+    "items": [
+      {
+        "id": "oi-1",
+        "order_id": "ORD-1042",
+        "menu_item_id": "item-mc-1",
+        "item_name": "Palace Royal Chicken Shawarma Platter",
+        "item_price": 369,
+        "is_veg": false,
+        "quantity": 1,
+        "subtotal": 369
+      },
+      {
+        "id": "oi-2",
+        "order_id": "ORD-1042",
+        "menu_item_id": "item-bv-1",
+        "item_name": "Signature Artisanal Rose Milk Bottle (300ml)",
+        "item_price": 159,
+        "is_veg": true,
+        "quantity": 1,
+        "subtotal": 159
+      }
+    ],
+    "created_at": "2026-11-21T19:42:40.363Z",
+    "updated_at": "2026-11-21T19:46:40.366Z"
+  },
+  {
+    "id": "ORD-1041",
+    "cafe_id": "cafe001",
+    "table_number": "T05",
+    "status": "accepted",
+    "customer_name": "Priya Verma",
+    "special_instructions": "No onions in the burger, serve drinks first",
+    "subtotal": 717,
+    "tax_amount": 35.85,
+    "total_amount": 752.85,
+    "items": [
+      {
+        "id": "oi-3",
+        "order_id": "ORD-1041",
+        "menu_item_id": "item-bg-1",
+        "item_name": "The Palace Classic Smash Chicken Burger",
+        "item_price": 299,
+        "is_veg": false,
+        "quantity": 1,
+        "subtotal": 299
+      },
+      {
+        "id": "oi-4",
+        "order_id": "ORD-1041",
+        "menu_item_id": "item-st-3",
+        "item_name": "Truffle & Parmesan Loaded French Fries",
+        "item_price": 219,
+        "is_veg": true,
+        "quantity": 1,
+        "subtotal": 219
+      },
+      {
+        "id": "oi-5",
+        "order_id": "ORD-1041",
+        "menu_item_id": "item-bv-2",
+        "item_name": "Spanish Cortado Hazelnut Hot Coffee",
+        "item_price": 199,
+        "is_veg": true,
+        "quantity": 1,
+        "subtotal": 199
+      }
+    ],
+    "created_at": "2026-11-21T19:29:40.366Z",
+    "updated_at": "2026-11-21T19:34:40.366Z"
+  },
+  {
+    "id": "ORD-1040",
+    "cafe_id": "cafe001",
+    "table_number": "T01",
+    "status": "ready",
+    "customer_name": "Amit Patel",
+    "special_instructions": "Extra napkins",
+    "subtotal": 618,
+    "tax_amount": 30.9,
+    "total_amount": 648.9,
+    "items": [
+      {
+        "id": "oi-6",
+        "order_id": "ORD-1040",
+        "menu_item_id": "item-pz-1",
+        "item_name": "Napoli Margherita Buffalo Mozzarella Pizza",
+        "item_price": 389,
+        "is_veg": true,
+        "quantity": 1,
+        "subtotal": 389
+      },
+      {
+        "id": "oi-7",
+        "order_id": "ORD-1040",
+        "menu_item_id": "item-ds-1",
+        "item_name": "Warm Belgian Chocolate Brownie with Vanilla Gelato",
+        "item_price": 229,
+        "is_veg": true,
+        "quantity": 1,
+        "subtotal": 229
+      }
+    ],
+    "created_at": "2026-11-21T19:14:40.366Z",
+    "updated_at": "2026-11-21T19:49:40.366Z"
+  },
+  {
+    "id": "ORD-1039",
+    "cafe_id": "cafe001",
+    "table_number": "T03",
+    "status": "served",
+    "customer_name": "Neha Kulkarni",
+    "subtotal": 478,
+    "tax_amount": 23.9,
+    "total_amount": 501.9,
+    "items": [
+      {
+        "id": "oi-8",
+        "order_id": "ORD-1039",
+        "menu_item_id": "item-sw-1",
+        "item_name": "Artisan Grilled Chicken Club Sandwich",
+        "item_price": 299,
+        "is_veg": false,
+        "quantity": 1,
+        "subtotal": 299
+      },
+      {
+        "id": "oi-9",
+        "order_id": "ORD-1039",
+        "menu_item_id": "item-bv-3",
+        "item_name": "Iced Passionfruit & Mint Sparkling Cooler",
+        "item_price": 189,
+        "is_veg": true,
+        "quantity": 1,
+        "subtotal": 189
+      }
+    ],
+    "created_at": "2026-11-21T18:39:40.366Z",
+    "updated_at": "2026-11-21T19:24:40.366Z"
+  }
+]
