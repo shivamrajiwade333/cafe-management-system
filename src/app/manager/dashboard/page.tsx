@@ -41,7 +41,26 @@ export default function ManagerDashboardPage() {
     }
   }, [isLoading, isAuthenticated, router]);
 
-  const refreshOverview = () => {
+  const refreshOverview = async () => {
+    try {
+      const [reportsRes, ordersRes] = await Promise.all([
+        fetch('/api/reports?cafe=cafe001', { cache: 'no-store' }),
+        fetch('/api/orders?cafe=cafe001', { cache: 'no-store' }),
+      ]);
+      if (reportsRes.ok) {
+        const repData = await reportsRes.json();
+        if (repData.report) setReport(repData.report);
+      }
+      if (ordersRes.ok) {
+        const ordData = await ordersRes.json();
+        if (ordData.orders) {
+          setPendingCount(ordData.orders.filter((o: IOrder) => o.status === 'pending').length);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Overview fetch error:', err);
+    }
     const data = dataStore.getSalesReport('cafe001');
     setReport(data);
     const orders = dataStore.getOrders('cafe001');
