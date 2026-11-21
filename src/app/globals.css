@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 40% 98%;
+    --foreground: 24 60% 8%;
+  }
+
+  body {
+    background-color: #fdfbf7;
+    color: #1e120c;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Custom Minimalist Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f4eedf;
+}
+::-webkit-scrollbar-thumb {
+  background: #c79e74;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9e6942;
+}
+
+/* Print Styles for Table Tent Stand and 80mm KOT */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  header, footer, nav, .print\:hidden {
+    display: none !important;
+  }
+}
